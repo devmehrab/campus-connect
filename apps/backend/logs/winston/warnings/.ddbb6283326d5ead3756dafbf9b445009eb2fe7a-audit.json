@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/home/mehrab/campus-connect/apps/backend/logs/winston/warnings/.ddbb6283326d5ead3756dafbf9b445009eb2fe7a-audit.json",
+    "files": [
+        {
+            "date": 1784826454697,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/warnings/usm-2026-07-23-23-warn.log",
+            "hash": "e95d3c94e19265502da53218e09a61bf7ca6b647ac54e0a0ae169f9de190feb0"
+        }
+    ],
+    "hashType": "sha256"
+}
