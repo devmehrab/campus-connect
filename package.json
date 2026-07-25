@@ -1,6 +1,9 @@
 {
   "name": "campus-connect",
   "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev"
+  },
   "version": "1.0.0",
   "type": "module"
 }

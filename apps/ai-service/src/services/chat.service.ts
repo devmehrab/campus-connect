@@ -1,0 +1,114 @@
+import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+} from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import {
+  RunnableSequence,
+  RunnablePassthrough,
+} from "@langchain/core/runnables";
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { LocalEmbeddings } from "../utils/embeddings";
+import { mongoClient } from "../config/db";
+
+export const generateAnswer = async (
+  question: string,
+  chatHistory: { role: string; content: string }[] = [],
+) => {
+  const embeddings = new LocalEmbeddings();
+  const vectorStore = new MongoDBAtlasVectorSearch(embeddings, {
+    collection: mongoClient.db("campus-connect").collection("vectors") as any,
+    indexName: "vector_index",
+    textKey: "text",
+    embeddingKey: "embedding",
+  });
+
+  const llm = new ChatGoogleGenerativeAI({
+    model: "gemini-2.5-flash",
+    temperature: 0.2,
+    apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+  });
+
+  const formattedHistory = chatHistory.map((msg) =>
+    msg.role === "user"
+      ? new HumanMessage(msg.content)
+      : new AIMessage(msg.content),
+  );
+
+  // STEP 1: The Query Re-writer Prompt
+  const contextualizeQPrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      `Given a chat history and the latest user question which might reference context in the chat history, formulate a standalone question. Do NOT answer the question, just reformulate it.`,
+    ],
+    new MessagesPlaceholder("chat_history"),
+    ["human", "{question}"],
+  ]);
+
+  // A mini-chain just to rewrite the question
+  const rephraseChain = RunnableSequence.from([
+    contextualizeQPrompt,
+    llm,
+    new StringOutputParser(),
+  ]);
+
+  // STEP 2: The Final Answer Prompt
+  const qaPrompt = ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      `You are a helpful AI assistant for Campus Connect.
+    Use the following pieces of retrieved context to answer the question.
+    If you don't know the answer, just say that you don't know.
+    
+    Context:
+    {context}`,
+    ],
+    new MessagesPlaceholder("chat_history"),
+    ["human", "{question}"],
+  ]);
+
+  // STEP 3: The Master Pipeline (LCEL)
+  const ragChain = RunnableSequence.from([
+    // Pipeline Phase A: Fetch the Documents
+    RunnablePassthrough.assign({
+      context: async (input: { question: string; chat_history: any[] }) => {
+        // If there is history, rewrite the question. Otherwise, use it as-is.
+        const standaloneQuery =
+          input.chat_history.length > 0
+            ? await rephraseChain.invoke(input)
+            : input.question;
+
+        // Grab the 4 best chunks from MongoDB
+        return await vectorStore.asRetriever({ k: 4 }).invoke(standaloneQuery);
+      },
+    }),
+    // Pipeline Phase B: Generate the Answer
+    RunnablePassthrough.assign({
+      answer: RunnableSequence.from([
+        // Combine all document chunks into one big string for the prompt
+        (input) => ({
+          ...input,
+          context: input.context
+            .map((doc: any) => doc.pageContent)
+            .join("\n\n"),
+        }),
+        qaPrompt,
+        llm,
+        new StringOutputParser(),
+      ]),
+    }),
+  ]);
+
+  // Execute!
+  const response = await ragChain.invoke({
+    question: question,
+    chat_history: formattedHistory,
+  });
+
+  return {
+    answer: response.answer,
+    sources: response.context, // The raw MongoDB docs are preserved here!
+  };
+};

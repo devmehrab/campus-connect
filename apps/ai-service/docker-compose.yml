@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: campus-connect-ai
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - TRANSFORMERS_CACHE=/app/.cache
+    env_file:
+      - .env
+    volumes:
+      - model_cache:/app/.cache
+    restart: unless-stopped
+
+volumes:
+  model_cache:

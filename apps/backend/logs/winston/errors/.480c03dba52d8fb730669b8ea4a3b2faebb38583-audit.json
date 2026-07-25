@@ -9,6 +9,31 @@
             "date": 1784826454696,
             "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-23-23-error.log",
             "hash": "6999f1220ba365f72a6f44f42a3bff605f4b85c08d1698def6ba1518792cb3fb"
+        },
+        {
+            "date": 1784882511105,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-24-14-error.log",
+            "hash": "eef783a0a6376535d900dc29e36c5568633c4880cabaf14a26a4faa5cf593ba0"
+        },
+        {
+            "date": 1784971712075,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-25-15-error.log",
+            "hash": "d91cd9e1e869e32a24962fba498efa82501fb62fe2f13858d2bd990d2a394686"
+        },
+        {
+            "date": 1784973617202,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-25-16-error.log",
+            "hash": "6d894c4e072d4127d2d2e5304cf0988eeffa541779d50fa0ef85d4fff7460dcd"
+        },
+        {
+            "date": 1784997528648,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-25-22-error.log",
+            "hash": "f1906aba44bcc61bece10543412817402fc93f090ae1bff22a56a2f159fb0732"
+        },
+        {
+            "date": 1784999134533,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-25-23-error.log",
+            "hash": "52821da4ccf8d6cbc3d66e95076e51ad7c8187b6ab063336deb1119b8ff69e33"
         }
     ],
     "hashType": "sha256"

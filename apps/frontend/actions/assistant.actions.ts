@@ -1,19 +1,28 @@
 "use server";
 
-import { fetcher } from "@/lib/fetcher";
-
-export async function askAssistantAction(message: string) {
+export async function askAssistant(
+  question: string,
+  chatHistory: { role: string; content: string }[],
+) {
   try {
-    const result: any = await fetcher(`/assistant/chat`, {
+    const response = await fetch(`${process.env.AI_SERVICE_URL}/api/rag/chat`, {
       method: "POST",
-      body: JSON.stringify({ message }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ question, chatHistory }),
     });
 
-    return result;
-  } catch (error: any) {
-    if (error.message === "NEXT_REDIRECT") {
-      throw error;
+    if (!response.ok) {
+      throw new Error("Failed to fetch from AI backend");
     }
-    return { success: false, error: error.message };
+
+    return await response.json();
+  } catch (error) {
+    console.error("AI Assistant Error:", error);
+    return {
+      answer: "Sorry, I am having trouble connecting to the server right now.",
+      sources: [],
+    };
   }
 }

@@ -1,0 +1,7 @@
+Sat Jul 25 2026 22:38:49 - [[32minfo[39m]: Redis client connected successfully
+Sat Jul 25 2026 22:38:49 - [[32minfo[39m]: MongoDB Connected: localhost
+Sat Jul 25 2026 22:38:49 - [[32minfo[39m]: Server running in development mode on port 5050
+Sat Jul 25 2026 22:38:49 - [[32minfo[39m]: Socket server is ready for connections!
+Sat Jul 25 2026 22:38:50 - [[32minfo[39m]: New client connected: jFm9oZgrs7AbimRQAAAB
+Sat Jul 25 2026 22:38:50 - [[32minfo[39m]: User 6a5e0f1f24f60775e2f2a183 mapped to socket jFm9oZgrs7AbimRQAAAB
+Sat Jul 25 2026 22:38:51 - [[32minfo[39m]: Client disconnected: jFm9oZgrs7AbimRQAAAB

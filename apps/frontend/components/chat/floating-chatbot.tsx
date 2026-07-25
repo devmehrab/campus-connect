@@ -1,77 +1,51 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send } from "lucide-react";
+import { askAssistant } from "@/actions/assistant.actions";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { askAssistantAction } from "@/actions/assistant.actions";
+import ReactMarkdown from "react-markdown";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
+type Message = { role: "user" | "ai"; content: string };
 
 export function FloatingChatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content:
-        "Hi! I'm Campus Bot. Need help with your routine or the academic calendar?",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isOpen, isLoading]);
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
-  const sendMessage = async (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMsg = input.trim();
+    const userMessage: Message = { role: "user", content: input };
+
+    // Optimistically update UI
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
     setIsLoading(true);
 
     try {
-      const response = await askAssistantAction(userMsg);
+      // Send the current question AND the previous messages (excluding the one we just added)
+      const data = await askAssistant(userMessage.content, messages);
 
-      if (response?.success === false) {
-        throw new Error(
-          response.error ||
-            response.message ||
-            "Failed to reach the assistant.",
-        );
-      }
-
-      const payload = response.data || response;
-      const aiText =
-        payload.reply ||
-        (typeof payload === "string"
-          ? payload
-          : "I received an empty response.");
-
-      setMessages((prev) => [...prev, { role: "assistant", content: aiText }]);
-    } catch (error: any) {
+      const aiMessage: Message = { role: "ai", content: data.answer };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          content: error.message || "Sorry, I couldn't reach the server.",
-        },
+        { role: "ai", content: "Something went wrong." },
       ]);
     } finally {
       setIsLoading(false);
@@ -79,95 +53,117 @@ export function FloatingChatbot() {
   };
 
   return (
-    <>
-      {/* 1. Floating Button - Sits above MobileNav (bottom-20) on mobile, bottom-8 on PC */}
-      {!isOpen && (
-        <Button
-          onClick={() => setIsOpen(true)}
-          size="icon"
-          className="fixed z-50 h-14 w-14 bottom-20 md:bottom-8 right-4 md:right-8 rounded-full shadow-lg shadow-primary/25 hover:scale-105 transition-transform"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Button>
-      )}
-
-      {/* 2. Chat Window - Fills screen minus MobileNav on mobile, floating card on PC */}
-      {isOpen && (
-        <Card className="fixed z-50 flex flex-col shadow-2xl border-border bg-card overflow-hidden transition-all duration-300 ease-in-out w-full h-[calc(100dvh-4rem)] bottom-16 right-0 rounded-none sm:w-[380px] sm:h-[550px] sm:bottom-8 sm:right-8 sm:rounded-2xl">
-          <CardHeader className="flex flex-row items-center justify-between border-b p-4 bg-primary text-primary-foreground sm:rounded-t-2xl shrink-0">
-            <div className="font-semibold flex items-center gap-2">
-              <MessageCircle className="w-5 h-5" />
-              Campus Bot
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-primary-foreground hover:text-primary hover:bg-background rounded-full transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              <X className="h-5 w-5" />
+    <div className="fixed bottom-4 right-4 z-50">
+      {isOpen ? (
+        <Card className="w-80 sm:w-96 h-[500px] flex flex-col shadow-xl">
+          <CardHeader className="flex flex-row justify-between items-center p-4 border-b">
+            <CardTitle className="text-lg">Campus Connect AI</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
+              X
             </Button>
           </CardHeader>
 
-          <CardContent className="flex-1 p-0 overflow-hidden bg-background/50">
-            <ScrollArea className="h-full p-4" ref={scrollRef}>
-              <div className="space-y-4">
-                {messages.map((msg, idx) => (
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {messages.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center mt-4">
+                  Ask me anything about the documents!
+                </p>
+              )}
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
                   <div
-                    key={idx}
-                    className={`flex ${
-                      msg.role === "user" ? "justify-end" : "justify-start"
+                    className={`rounded-lg px-3 py-2 max-w-[85%] text-sm ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
                     }`}
                   >
-                    <div
-                      className={`max-w-[85%] rounded-2xl p-3 text-sm break-words whitespace-pre-wrap shadow-sm ${
-                        msg.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-tr-sm"
-                          : "bg-card border border-border rounded-tl-sm text-foreground"
-                      }`}
-                    >
-                      {msg.content}
-                    </div>
+                    {msg.role === "user" ? (
+                      // Keep user messages as plain text
+                      <p>{msg.content}</p>
+                    ) : (
+                      // Parse AI messages as Markdown
+                      <div className="prose-sm">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ node, ...props }) => (
+                              <p
+                                className="mb-2 last:mb-0 leading-relaxed"
+                                {...props}
+                              />
+                            ),
+                            ul: ({ node, ...props }) => (
+                              <ul
+                                className="list-disc pl-4 mb-2 space-y-1"
+                                {...props}
+                              />
+                            ),
+                            ol: ({ node, ...props }) => (
+                              <ol
+                                className="list-decimal pl-4 mb-2 space-y-1"
+                                {...props}
+                              />
+                            ),
+                            li: ({ node, ...props }) => (
+                              <li className="leading-relaxed" {...props} />
+                            ),
+                            strong: ({ node, ...props }) => (
+                              <strong className="font-semibold" {...props} />
+                            ),
+                            a: ({ node, ...props }) => (
+                              <a
+                                className="text-blue-500 hover:underline"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                {...props}
+                              />
+                            ),
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </div>
-                ))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-card border border-border max-w-[80%] rounded-2xl rounded-tl-sm p-3 text-sm animate-pulse text-muted-foreground flex gap-1 items-center shadow-sm">
-                      <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" />
-                      <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce delay-75" />
-                      <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce delay-150" />
-                    </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="rounded-lg px-3 py-2 bg-muted text-sm animate-pulse">
+                    Thinking...
                   </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
-          </CardContent>
+                </div>
+              )}
+              <div ref={scrollRef} />
+            </div>
+          </ScrollArea>
 
-          <CardFooter className="p-3 border-t border-border bg-card shrink-0 sm:rounded-b-2xl">
-            <form
-              onSubmit={sendMessage}
-              className="flex w-full items-center space-x-2"
-            >
+          <div className="p-4 border-t">
+            <form onSubmit={handleSend} className="flex gap-2">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about your routine..."
-                className="flex-1 bg-secondary border-none focus-visible:ring-1 focus-visible:ring-primary rounded-full px-4"
+                placeholder="Ask a question..."
                 disabled={isLoading}
               />
-              <Button
-                type="submit"
-                size="icon"
-                className="rounded-full shrink-0"
-                disabled={isLoading || !input.trim()}
-              >
-                <Send className="h-4 w-4" />
+              <Button type="submit" disabled={isLoading}>
+                Send
               </Button>
             </form>
-          </CardFooter>
+          </div>
         </Card>
+      ) : (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="h-14 w-14 rounded-full shadow-lg"
+        >
+          Chat
+        </Button>
       )}
-    </>
+    </div>
   );
 }
