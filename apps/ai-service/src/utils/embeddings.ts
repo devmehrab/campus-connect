@@ -1,15 +1,14 @@
 import { Embeddings } from "@langchain/core/embeddings";
-import { pipeline } from "@xenova/transformers";
 
 export class LocalEmbeddings extends Embeddings {
   private pipelinePromise: Promise<any>;
 
   constructor() {
     super({});
-    this.pipelinePromise = pipeline(
-      "feature-extraction",
-      "Xenova/all-MiniLM-L6-v2",
-    );
+    this.pipelinePromise = (async () => {
+      const { pipeline } = await import("@xenova/transformers");
+      return pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+    })();
   }
 
   async embedDocuments(texts: string[]): Promise<number[][]> {
