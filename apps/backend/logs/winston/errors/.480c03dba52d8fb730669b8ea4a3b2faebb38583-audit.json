@@ -34,6 +34,16 @@
             "date": 1784999134533,
             "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-25-23-error.log",
             "hash": "52821da4ccf8d6cbc3d66e95076e51ad7c8187b6ab063336deb1119b8ff69e33"
+        },
+        {
+            "date": 1785055035782,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-26-14-error.log",
+            "hash": "4cc90512db002a7ee24dbca5cf2a29e5c6c929f07d4d554a28e61ae4c1911ea5"
+        },
+        {
+            "date": 1785058385045,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-26-15-error.log",
+            "hash": "1d43a425625dbcaef81afca0e434f48334adc14a3c851a78e4b2270ac0f74c52"
         }
     ],
     "hashType": "sha256"

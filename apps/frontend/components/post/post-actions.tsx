@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Trash2, Loader2, Edit } from "lucide-react";
 import { deletePostAction, updatePostAction } from "@/actions/post.actions";
@@ -14,12 +15,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-interface CardActionsProps {
+interface PostActionsProps {
   postId: string;
-  initialContent?: string;
+  initialContent: string;
 }
 
-export function CardActions({ postId, initialContent = "" }: CardActionsProps) {
+export function PostActions({ postId, initialContent }: PostActionsProps) {
+  const router = useRouter();
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isUpdating, startUpdateTransition] = useTransition();
 
@@ -35,6 +37,7 @@ export function CardActions({ postId, initialContent = "" }: CardActionsProps) {
         toast.error(res.error || "Failed to delete post.");
       } else {
         toast.success("Post deleted successfully.");
+        router.push("/feed"); // Redirect to feed after deleting from the single post page
       }
     });
   };
@@ -59,7 +62,7 @@ export function CardActions({ postId, initialContent = "" }: CardActionsProps) {
   };
 
   return (
-    <div className="absolute right-4 top-4 flex items-center gap-1">
+    <div className="flex items-center gap-1">
       {/* Edit Button */}
       <Button
         variant="ghost"
@@ -67,10 +70,10 @@ export function CardActions({ postId, initialContent = "" }: CardActionsProps) {
         onClick={() => setIsDialogOpen(true)}
         className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
       >
-        <Edit size={14} />
+        <Edit size={16} />
       </Button>
 
-      {/* Edit Dialog (No longer wrapped in DialogTrigger) */}
+      {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -117,9 +120,9 @@ export function CardActions({ postId, initialContent = "" }: CardActionsProps) {
         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
       >
         {isDeleting ? (
-          <Loader2 size={14} className="animate-spin" />
+          <Loader2 size={16} className="animate-spin" />
         ) : (
-          <Trash2 size={14} />
+          <Trash2 size={16} />
         )}
       </Button>
     </div>

@@ -14,7 +14,7 @@ export function CardContentView({ post }: { post: IPost }) {
       onClick={() => router.push(`/posts/${post._id}`)}
       className="pb-4 space-y-3 w-full min-w-0 cursor-pointer"
     >
-      <p className="text-foreground/90 text-[15px] leading-relaxed font-sans whitespace-pre-wrap break-words [word-break:break-word] min-w-0">
+      <p className="text-foreground/90 text-[15px] px-3 leading-relaxed font-sans whitespace-pre-wrap break-words [word-break:break-word] min-w-0">
         {renderContentWithLinks(post.content)}
       </p>
 

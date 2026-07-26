@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserId } from "@/services/auth.service";
-import { getPostByIdAction, getCommentsAction } from "@/actions/post.actions";
+import { getPostByIdAction } from "@/actions/post.actions";
+import { getCommentsAction } from "@/actions/comment.actions";
 import { Button } from "@/components/ui/button";
 import { PostInteractions } from "@/components/post/post-interactions";
 import { CommentSection } from "@/components/post/comment-section";
 import { PostContent } from "@/components/post/post-content";
+import { PostActions } from "@/components/post/post-actions"; // <-- Import the new component
 
 export default async function SinglePostPage({
   params,
@@ -49,6 +51,10 @@ export default async function SinglePostPage({
 
   const author = post.author || post.user;
 
+  // Check if the current user is the author of this post
+  const isAuthor =
+    currentUserId === author?._id || currentUserId === author?.id;
+
   return (
     <div className="max-w-2xl mx-auto w-full h-full">
       <div className="mb-4">
@@ -61,33 +67,44 @@ export default async function SinglePostPage({
       </div>
 
       <div className="bg-card border border-border p-5 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <Link href={`/profile/${author?._id}`}>
-            <div className="w-12 h-12 rounded-full bg-muted border border-border/50 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
-              {author?.profilePicture ? (
-                <img
-                  src={author.profilePicture}
-                  alt={author?.username}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-slate-500 font-medium text-sm">
-                  {author?.username?.charAt(0).toUpperCase() || "U"}
-                </span>
-              )}
-            </div>
-          </Link>
-
-          <div>
-            <Link href={`/profile/${author?._id}`} className="hover:underline">
-              <h2 className="font-semibold text-[17px] text-foreground leading-tight">
-                {author?.username || "Unknown User"}
-              </h2>
+        {/* Changed this to a flex container that justifies between the user info and the actions */}
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-3">
+            <Link href={`/profile/${author?._id}`}>
+              <div className="w-12 h-12 rounded-full bg-muted border border-border/50 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                {author?.profilePicture ? (
+                  <img
+                    src={author.profilePicture}
+                    alt={author?.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-slate-500 font-medium text-sm">
+                    {author?.username?.charAt(0).toUpperCase() || "U"}
+                  </span>
+                )}
+              </div>
             </Link>
-            <p className="text-sm text-muted-foreground">
-              {author?.name || ""}
-            </p>
+
+            <div>
+              <Link
+                href={`/profile/${author?._id}`}
+                className="hover:underline"
+              >
+                <h2 className="font-semibold text-[17px] text-foreground leading-tight">
+                  {author?.username || "Unknown User"}
+                </h2>
+              </Link>
+              <p className="text-sm text-muted-foreground">
+                {author?.name || ""}
+              </p>
+            </div>
           </div>
+
+          {/* Render the Actions only if it's their post */}
+          {isAuthor && (
+            <PostActions postId={postId} initialContent={post.content} />
+          )}
         </div>
 
         <div className="mb-6">

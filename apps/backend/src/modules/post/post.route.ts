@@ -31,6 +31,7 @@ router.get("/:id", auth("STUDENT", "ALUMNI"), PostController.getPostById);
 router.put(
   "/:id",
   auth("STUDENT", "ALUMNI"),
+  upload.array("images", 4),
   validate(PostValidation.updatePostSchema),
   PostController.updatePost
 );

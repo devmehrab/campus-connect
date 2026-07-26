@@ -4,6 +4,7 @@ import { IPost } from "./post.interface";
 import { NotificationService } from "../notification/notification.service";
 import { Comment } from "../comment/comment.model";
 import redisClient from "../../config/redis";
+import { logger } from "../../utils/logger";
 
 const invalidateFeedCache = async () => {
   const keys = await redisClient.keys("feed:*");

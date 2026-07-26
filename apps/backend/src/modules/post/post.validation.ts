@@ -25,7 +25,7 @@ const getFeedSchema = z.object({
 
 const updatePostSchema = z.object({
   body: z.object({
-    content: z.string().min(1, "Content is required").max(2000, "Post is too long").optional(),
+    content: z.string().min(1, "Content is required").max(500, "Post is too long").optional(),
     images: z
       .array(z.string().url("Invalid image URL"))
       .max(4, "You can only upload up to 4 images")

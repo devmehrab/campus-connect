@@ -2,11 +2,16 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { addCommentAction } from "@/actions/post.actions";
+import {
+  addCommentAction,
+  deleteCommentAction,
+  updateCommentAction,
+} from "@/actions/comment.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import renderContentWithLinks from "../shared/render-links";
 import { toast } from "sonner";
+import { Trash2, Edit, Loader2 } from "lucide-react";
 
 interface Comment {
   _id: string;
@@ -17,6 +22,7 @@ interface Comment {
     username: string;
     name?: string;
     profilePicture?: string;
+    id?: string;
   };
   user?: any;
 }
@@ -36,6 +42,11 @@ export function CommentSection({
   const [newComment, setNewComment] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [isUpdating, startUpdateTransition] = useTransition();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || isPending) return;
@@ -49,6 +60,47 @@ export function CommentSection({
         setComments((prev) => [res.data, ...prev]);
       } else {
         toast.error(res.error || "Failed to add comment.");
+      }
+    });
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!window.confirm("Are you sure you want to delete this comment?"))
+      return;
+
+    setDeletingId(commentId);
+    const res = await deleteCommentAction(commentId);
+
+    if (res.success) {
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      toast.success("Comment deleted");
+    } else {
+      toast.error(res.error || "Failed to delete comment.");
+    }
+    setDeletingId(null);
+  };
+
+  const startEditing = (comment: Comment) => {
+    setEditingId(comment._id);
+    setEditContent(comment.content);
+  };
+
+  const handleUpdateComment = (commentId: string) => {
+    if (!editContent.trim()) return;
+
+    startUpdateTransition(async () => {
+      const res = await updateCommentAction(commentId, editContent);
+
+      if (res.success) {
+        setComments((prev) =>
+          prev.map((c) =>
+            c._id === commentId ? { ...c, content: editContent } : c,
+          ),
+        );
+        setEditingId(null);
+        toast.success("Comment updated");
+      } else {
+        toast.error(res.error || "Failed to update comment.");
       }
     });
   };
@@ -78,10 +130,16 @@ export function CommentSection({
         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
           {comments.map((comment) => {
             const author = comment.author || comment.user;
+
+            const isAuthor =
+              currentUserId === author?._id || currentUserId === author?.id;
+
+            const isEditing = editingId === comment._id;
+
             return (
               <div
                 key={comment._id}
-                className="flex gap-3 text-sm items-start border-b border-border/20 pb-3 last:border-0 last:pb-0"
+                className="flex gap-3 text-sm items-start border-b border-border/20 pb-3 last:border-0 last:pb-0 group"
               >
                 <Link href={`/profile/${author?._id}`} className="shrink-0">
                   <div className="w-8 h-8 rounded-full bg-muted border border-border/50 flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity">
@@ -99,26 +157,90 @@ export function CommentSection({
                   </div>
                 </Link>
                 <div className="flex-1 bg-secondary/30 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <Link
-                      href={`/profile/${author?._id}`}
-                      className="font-semibold text-foreground hover:underline"
-                    >
-                      {author?.username || "Unknown User"}
-                    </Link>
-                    <span className="text-[11px] text-muted-foreground">
-                      {new Date(comment.createdAt).toLocaleDateString(
-                        undefined,
-                        {
-                          month: "short",
-                          day: "numeric",
-                        },
-                      )}
-                    </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/profile/${author?._id}`}
+                        className="font-semibold text-foreground hover:underline"
+                      >
+                        {author?.username || "Unknown User"}
+                      </Link>
+                      <span className="text-[11px] text-muted-foreground">
+                        {new Date(comment.createdAt).toLocaleDateString(
+                          undefined,
+                          {
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )}
+                      </span>
+                    </div>
+
+                    {isAuthor && !isEditing && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => startEditing(comment)}
+                          disabled={deletingId === comment._id}
+                          className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                          title="Edit Comment"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          disabled={deletingId === comment._id}
+                          className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                          title="Delete Comment"
+                        >
+                          {deletingId === comment._id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-foreground leading-relaxed break-words">
-                    {renderContentWithLinks(comment.content)}
-                  </p>
+
+                  {isEditing ? (
+                    <div className="mt-2 space-y-2">
+                      <Input
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        disabled={isUpdating}
+                        autoFocus
+                        className="h-8 text-sm bg-background"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingId(null)}
+                          disabled={isUpdating}
+                          className="h-7 px-3 text-xs"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleUpdateComment(comment._id)}
+                          disabled={isUpdating || editContent.trim() === ""}
+                          className="h-7 px-3 text-xs"
+                        >
+                          {isUpdating ? (
+                            <Loader2 size={12} className="animate-spin mr-1" />
+                          ) : null}
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-foreground leading-relaxed break-words">
+                      {renderContentWithLinks(comment.content)}
+                    </p>
+                  )}
                 </div>
               </div>
             );

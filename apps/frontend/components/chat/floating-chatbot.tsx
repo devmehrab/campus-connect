@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
+import { X, MessageSquare } from "lucide-react";
 
 type Message = { role: "user" | "ai"; content: string };
 
@@ -53,13 +54,17 @@ export function FloatingChatbot() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed right-4 z-50 bottom-24 md:bottom-8">
       {isOpen ? (
-        <Card className="w-80 sm:w-96 h-[500px] flex flex-col shadow-xl">
+        <Card className="flex flex-col shadow-xl w-[calc(100vw-2rem)] sm:w-96 h-[65vh] max-h-[500px] sm:h-[500px]">
           <CardHeader className="flex flex-row justify-between items-center p-4 border-b">
             <CardTitle className="text-lg">Campus Connect AI</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
-              X
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-5 w-5" />
             </Button>
           </CardHeader>
 
@@ -83,10 +88,8 @@ export function FloatingChatbot() {
                     }`}
                   >
                     {msg.role === "user" ? (
-                      // Keep user messages as plain text
                       <p>{msg.content}</p>
                     ) : (
-                      // Parse AI messages as Markdown
                       <div className="prose-sm">
                         <ReactMarkdown
                           components={{
@@ -161,7 +164,7 @@ export function FloatingChatbot() {
           onClick={() => setIsOpen(true)}
           className="h-14 w-14 rounded-full shadow-lg"
         >
-          Chat
+          <MessageSquare className="h-6 w-6" />
         </Button>
       )}
     </div>

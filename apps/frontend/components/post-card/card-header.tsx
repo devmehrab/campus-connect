@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader } from "@/components/ui/card";
-import { CardDeleteAction } from "./card-delete";
+import { CardActions } from "./card-delete";
 import { IPost } from "./card-main";
 
 function formatTimeAgo(dateString: string | Date | undefined): string {
@@ -54,7 +54,9 @@ export function CardHeaderView({ post }: { post: IPost }) {
         </div>
       </Link>
 
-      {post.isAuthor && <CardDeleteAction postId={post._id} />}
+      {post.isAuthor && (
+        <CardActions postId={post._id} initialContent={post.content} />
+      )}
     </CardHeader>
   );
 }

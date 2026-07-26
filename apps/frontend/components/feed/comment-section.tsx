@@ -8,8 +8,9 @@ import {
   getCommentsAction,
   addCommentAction,
   deleteCommentAction,
-} from "@/actions/post.actions";
-import { Loader2, Send, Trash2 } from "lucide-react";
+  updateCommentAction,
+} from "@/actions/comment.actions";
+import { Loader2, Send, Trash2, Edit, X } from "lucide-react";
 import renderContentWithLinks from "../shared/render-links";
 import { toast } from "sonner";
 
@@ -29,8 +30,14 @@ export function CommentSection({ postId }: { postId: string }) {
   const [comments, setComments] = useState<IComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+
   const [isPending, startTransition] = useTransition();
+  const [isUpdating, startUpdateTransition] = useTransition();
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -54,21 +61,49 @@ export function CommentSection({ postId }: { postId: string }) {
       const res = await addCommentAction(postId, commentText);
       if (res.success && res.data) {
         setComments((prev) => [...prev, res.data]);
+      } else {
+        toast.error(res.error || "Failed to add comment.");
       }
     });
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    setDeletingId(commentId);
+    if (!window.confirm("Delete this comment?")) return;
 
+    setDeletingId(commentId);
     const res = await deleteCommentAction(commentId);
+
     if (res.success) {
       setComments((prev) => prev.filter((c) => c._id !== commentId));
     } else {
       toast.error(res.error || "Failed to delete comment.");
     }
-
     setDeletingId(null);
+  };
+
+  const startEditing = (comment: IComment) => {
+    setEditingId(comment._id);
+    setEditContent(comment.content);
+  };
+
+  const handleUpdateComment = async (commentId: string) => {
+    if (!editContent.trim()) return;
+
+    startUpdateTransition(async () => {
+      const res = await updateCommentAction(commentId, editContent);
+
+      if (res.success) {
+        setComments((prev) =>
+          prev.map((c) =>
+            c._id === commentId ? { ...c, content: editContent } : c,
+          ),
+        );
+        setEditingId(null);
+        toast.success("Comment updated.");
+      } else {
+        toast.error(res.error || "Failed to update comment.");
+      }
+    });
   };
 
   if (isLoading) {
@@ -89,10 +124,11 @@ export function CommentSection({ postId }: { postId: string }) {
         ) : (
           comments.map((comment) => {
             const avatarSrc = comment.author.profilePicture;
+            const isEditing = editingId === comment._id;
 
             return (
               <div key={comment._id} className="flex gap-3 group">
-                <Avatar className="h-8 w-8 border border-primary/20 rounded-md">
+                <Avatar className="h-8 w-8 border border-primary/20 rounded-md shrink-0">
                   <AvatarImage src={avatarSrc} className="object-cover" />
                   <AvatarFallback className="bg-background text-primary font-mono text-xs rounded-md">
                     {comment.author.username.substring(0, 2).toUpperCase()}
@@ -104,23 +140,69 @@ export function CommentSection({ postId }: { postId: string }) {
                       @{comment.author.username}
                     </span>
 
-                    {comment.isAuthor && (
-                      <button
-                        onClick={() => handleDeleteComment(comment._id)}
-                        disabled={deletingId === comment._id}
-                        className="text-danger hover:text-destructive transition-colors disabled:opacity-50"
-                      >
-                        {deletingId === comment._id ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={14} />
-                        )}
-                      </button>
+                    {comment.isAuthor && !isEditing && (
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => startEditing(comment)}
+                          disabled={deletingId === comment._id}
+                          className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          disabled={deletingId === comment._id}
+                          className="text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                        >
+                          {deletingId === comment._id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
+                        </button>
+                      </div>
                     )}
                   </div>
-                  <p className="text-sm text-foreground/90 font-sans">
-                    {renderContentWithLinks(comment.content)}
-                  </p>
+
+                  {isEditing ? (
+                    <div className="mt-2 space-y-2">
+                      <Input
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        disabled={isUpdating}
+                        autoFocus
+                        className="h-8 text-sm bg-background"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingId(null)}
+                          disabled={isUpdating}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleUpdateComment(comment._id)}
+                          disabled={isUpdating || editContent.trim() === ""}
+                          className="h-6 px-2 text-xs"
+                        >
+                          {isUpdating ? (
+                            <Loader2 size={12} className="animate-spin mr-1" />
+                          ) : null}
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-foreground/90 font-sans">
+                      {renderContentWithLinks(comment.content)}
+                    </p>
+                  )}
                 </div>
               </div>
             );
