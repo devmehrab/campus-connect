@@ -17,6 +17,13 @@ export const generateAnswer = async (
   question: string,
   chatHistory: { role: string; content: string }[] = [],
 ) => {
+  const today = new Date();
+  const currentDateStr = today.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
   const embeddings = new LocalEmbeddings();
   const vectorStore = new MongoDBAtlasVectorSearch(embeddings, {
     collection: mongoClient.db("campus-connect").collection("vectors") as any,
@@ -40,9 +47,11 @@ export const generateAnswer = async (
   const contextualizeQPrompt = ChatPromptTemplate.fromMessages([
     [
       "system",
-      `Given a chat history and the latest user question, formulate a standalone question that can be understood without the chat history. 
-    If the question is already self-contained, return it EXACTLY as it is. 
-    Do NOT answer the question, just reformulate it if necessary.`,
+      `Today is ${currentDateStr}. 
+      Given a chat history and the latest user question, formulate a standalone question that can be understood without the chat history. 
+      Resolve any relative time references (like "tomorrow" or "next week") into absolute days or dates based on today's date.
+      If the question is already self-contained, return it EXACTLY as it is. 
+      Do NOT answer the question, just reformulate it if necessary.`,
     ],
     new MessagesPlaceholder("chat_history"),
     ["human", "{question}"],
@@ -58,11 +67,13 @@ export const generateAnswer = async (
     [
       "system",
       `You are a helpful AI assistant for Campus Connect.
-    Use the following pieces of retrieved context to answer the question.
-    If you don't know the answer, just say that you don't know.
-    
-    Context:
-    {context}`,
+      Today is ${currentDateStr}.
+      Use the following pieces of retrieved context to answer the question.
+      Pay attention to days and dates when answering schedule-related questions.
+      If you don't know the answer, just say that you don't know.
+      
+      Context:
+      {context}`,
     ],
     new MessagesPlaceholder("chat_history"),
     ["human", "{question}"],

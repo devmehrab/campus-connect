@@ -59,6 +59,21 @@
             "date": 1785284991540,
             "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/warnings/usm-2026-07-29-06-warn.log",
             "hash": "4a2e56bf8fd37ce9b15ea34eda5d1468bc255875466680a919a9516d673b032d"
+        },
+        {
+            "date": 1785299830267,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/warnings/usm-2026-07-29-10-warn.log",
+            "hash": "8b6227b5c7a3b3a31ad7a06e44dce99a0230b999bbc8e29b74b792b046047600"
+        },
+        {
+            "date": 1785301389212,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/warnings/usm-2026-07-29-11-warn.log",
+            "hash": "04d00e95e7af2bcf35a5cdac826b3014cd69115d61901a0f10b66795c8e1ade1"
+        },
+        {
+            "date": 1785314904642,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/warnings/usm-2026-07-29-14-warn.log",
+            "hash": "5d3d990ab10467ef3f81b280913d14715ddf6f9820610b93bb7c6fa41a146dc9"
         }
     ],
     "hashType": "sha256"

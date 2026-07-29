@@ -6,7 +6,9 @@ import { getUserProfileAction } from "@/actions/user.actions";
 export default async function FeedPage() {
   const profilePromise = getUserProfileAction();
   const feedPromise = fetcher("/posts/feed?page=1&limit=20", {
-    cache: "no-store",
+    next: {
+      revalidate: 30,
+    },
   }) as Promise<{ success: boolean; data?: IPost[] }>;
 
   const [profileRes, feedResult] = await Promise.all([

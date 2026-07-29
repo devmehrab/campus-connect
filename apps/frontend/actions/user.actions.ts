@@ -8,7 +8,9 @@ export async function getUserProfileAction() {
   try {
     const result: any = await fetcher("/users/me", {
       method: "GET",
-      cache: "no-store",
+      next: {
+        revalidate: 30,
+      },
     });
     return { success: true, data: result.data };
   } catch (error: any) {
@@ -20,6 +22,9 @@ export async function getUserByIdAction(userId: string) {
   try {
     const result = await fetcher(`/users/${userId}`, {
       method: "GET",
+      next: {
+        revalidate: 30,
+      },
     });
     return result;
   } catch (error: any) {
@@ -31,7 +36,9 @@ export async function getUserPostsAction() {
   try {
     const result: any = await fetcher("/posts/my-posts", {
       method: "GET",
-      cache: "no-store",
+      next: {
+        revalidate: 30,
+      },
     });
     return { success: true, data: result.data };
   } catch (error: any) {
@@ -44,7 +51,9 @@ export async function getSpecificUserPostsAction(userId: string) {
   try {
     const result: any = await fetcher(`/posts/user/${userId}`, {
       method: "GET",
-      cache: "no-store",
+      next: {
+        revalidate: 30,
+      },
     });
 
     return { success: true, data: result.data || result };
@@ -93,6 +102,9 @@ export async function getAllUsersAction() {
   try {
     const result: any = await fetcher("/users", {
       method: "GET",
+      next: {
+        revalidate: 30,
+      },
     });
     return result;
   } catch (error: any) {
@@ -104,6 +116,9 @@ export async function getReceiverProfileAction(userId: string) {
   try {
     const result: any = await fetcher(`/users/${userId}`, {
       method: "GET",
+      next: {
+        revalidate: 30,
+      },
     });
     return result;
   } catch (error: any) {
