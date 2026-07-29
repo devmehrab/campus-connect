@@ -5,7 +5,7 @@ import { askAssistant } from "@/actions/assistant.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-// Removed ScrollArea import
+
 import ReactMarkdown from "react-markdown";
 import { X, MessageSquare } from "lucide-react";
 
@@ -19,7 +19,6 @@ export function FloatingChatbot() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -32,7 +31,6 @@ export function FloatingChatbot() {
 
     const userMessage: Message = { role: "user", content: input };
 
-    // Optimistically update UI
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -56,7 +54,7 @@ export function FloatingChatbot() {
       {isOpen ? (
         <Card className="flex py-0 flex-col shadow-xl w-[calc(100vw-2rem)] sm:w-96 h-[65vh] max-h-[500px] sm:h-[500px]">
           <CardHeader className="flex flex-row justify-between items-center p-4 border-b shrink-0">
-            <CardTitle className="text-lg">Campus Connect AI</CardTitle>
+            <CardTitle className="text-lg">AI Chat (cse-4 only)</CardTitle>
             <Button
               variant="ghost"
               size="icon"
@@ -66,7 +64,6 @@ export function FloatingChatbot() {
             </Button>
           </CardHeader>
 
-          {/* FIX: Replaced ScrollArea with a native scrolling div */}
           <div className="flex-1 p-4 overflow-y-auto min-h-0 custom-scrollbar">
             <div className="space-y-4">
               {messages.length === 0 && (
