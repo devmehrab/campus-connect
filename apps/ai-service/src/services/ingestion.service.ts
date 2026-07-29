@@ -11,17 +11,10 @@ export async function ingestDocument(
   filePath: string,
   originalFileName: string,
 ) {
-  console.log(`Starting ingestion for: ${originalFileName}`);
-
   const ext = path.extname(originalFileName).toLowerCase();
   let chunks: Document[] = [];
 
-  // ==========================================
-  // 1. PARSING & ROUTING PHASE
-  // ==========================================
   if (ext === ".pdf") {
-    console.log("📄 PDF detected. Parsing document with LlamaParse...");
-
     const reader = new LlamaParseReader({
       apiKey: process.env.LLAMA_CLOUD_API_KEY,
       resultType: "markdown",
@@ -30,17 +23,13 @@ export async function ingestDocument(
     const parsedDocuments = await reader.loadData(filePath);
     const rawMarkdownText = parsedDocuments.map((doc) => doc.text).join("\n\n");
 
-    console.log(
-      `Extracted ${rawMarkdownText.length} characters of Markdown text.`,
-    );
-
     if (!rawMarkdownText || rawMarkdownText.trim() === "") {
       throw new Error("No text could be extracted from this PDF.");
     }
 
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
+      chunkSize: 800,
+      chunkOverlap: 150,
     });
 
     chunks = await splitter.createDocuments(
@@ -48,8 +37,6 @@ export async function ingestDocument(
       [{ source: originalFileName }],
     );
   } else if (ext === ".json") {
-    console.log("🗂️ JSON detected. Parsing with native Node.js...");
-
     const rawJson = fs.readFileSync(filePath, "utf-8");
     const parsedData = JSON.parse(rawJson);
 
@@ -74,19 +61,12 @@ export async function ingestDocument(
       throw new Error("No valid JSON structure found in this file.");
     }
   } else {
-    // 🚨 CRITICAL FIX: Block unsupported files before they reach MongoDB
     throw new Error(
       `Unsupported file format: "${ext}". Currently supported: .pdf, .json`,
     );
   }
 
-  console.log(`Prepared ${chunks.length} total chunks for vector storage.`);
-
-  // ==========================================
-  // 2. VECTORIZATION & MONGO INGESTION PHASE
-  // ==========================================
   const embeddings = new LocalEmbeddings();
-  console.log("Generating local embeddings and saving to MongoDB Atlas...");
 
   const collection = mongoClient.db("campus-connect").collection("vectors");
 
@@ -96,8 +76,6 @@ export async function ingestDocument(
     textKey: "text",
     embeddingKey: "embedding",
   });
-
-  console.log("🎉 Ingestion complete!");
 
   return {
     message: "File ingested successfully!",

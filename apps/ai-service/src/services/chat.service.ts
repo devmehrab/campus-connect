@@ -37,24 +37,23 @@ export const generateAnswer = async (
       : new AIMessage(msg.content),
   );
 
-  // STEP 1: The Query Re-writer Prompt
   const contextualizeQPrompt = ChatPromptTemplate.fromMessages([
     [
       "system",
-      `Given a chat history and the latest user question which might reference context in the chat history, formulate a standalone question. Do NOT answer the question, just reformulate it.`,
+      `Given a chat history and the latest user question, formulate a standalone question that can be understood without the chat history. 
+    If the question is already self-contained, return it EXACTLY as it is. 
+    Do NOT answer the question, just reformulate it if necessary.`,
     ],
     new MessagesPlaceholder("chat_history"),
     ["human", "{question}"],
   ]);
 
-  // A mini-chain just to rewrite the question
   const rephraseChain = RunnableSequence.from([
     contextualizeQPrompt,
     llm,
     new StringOutputParser(),
   ]);
 
-  // STEP 2: The Final Answer Prompt
   const qaPrompt = ChatPromptTemplate.fromMessages([
     [
       "system",
@@ -69,25 +68,24 @@ export const generateAnswer = async (
     ["human", "{question}"],
   ]);
 
-  // STEP 3: The Master Pipeline (LCEL)
   const ragChain = RunnableSequence.from([
-    // Pipeline Phase A: Fetch the Documents
     RunnablePassthrough.assign({
       context: async (input: { question: string; chat_history: any[] }) => {
-        // If there is history, rewrite the question. Otherwise, use it as-is.
         const standaloneQuery =
           input.chat_history.length > 0
             ? await rephraseChain.invoke(input)
             : input.question;
 
-        // Grab the 4 best chunks from MongoDB
-        return await vectorStore.asRetriever({ k: 4 }).invoke(standaloneQuery);
+        const docs = await vectorStore
+          .asRetriever({ k: 10 })
+          .invoke(standaloneQuery);
+
+        return docs;
       },
     }),
-    // Pipeline Phase B: Generate the Answer
+
     RunnablePassthrough.assign({
       answer: RunnableSequence.from([
-        // Combine all document chunks into one big string for the prompt
         (input) => ({
           ...input,
           context: input.context
@@ -101,7 +99,6 @@ export const generateAnswer = async (
     }),
   ]);
 
-  // Execute!
   const response = await ragChain.invoke({
     question: question,
     chat_history: formattedHistory,
@@ -109,6 +106,6 @@ export const generateAnswer = async (
 
   return {
     answer: response.answer,
-    sources: response.context, // The raw MongoDB docs are preserved here!
+    sources: response.context,
   };
 };

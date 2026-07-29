@@ -10,3 +10,7 @@ Sun Jul 26 2026 16:12:50 - [[32minfo[39m]: User 6a5e0f1f24f60775e2f2a183 mappe
 Sun Jul 26 2026 16:14:1 - [[32minfo[39m]: Client disconnected: NGVes23pukGVZH2aAAAN
 Sun Jul 26 2026 16:14:2 - [[32minfo[39m]: New client connected: 68Woe54cThsnaZM2AAAP
 Sun Jul 26 2026 16:14:2 - [[32minfo[39m]: User 6a5e0f1f24f60775e2f2a183 mapped to socket 68Woe54cThsnaZM2AAAP
+Sun Jul 26 2026 16:35:15 - [[32minfo[39m]: Redis client connected successfully
+Sun Jul 26 2026 16:35:15 - [[32minfo[39m]: MongoDB Connected: localhost
+Sun Jul 26 2026 16:35:15 - [[32minfo[39m]: Server running in development mode on port 5050
+Sun Jul 26 2026 16:35:15 - [[32minfo[39m]: Socket server is ready for connections!
