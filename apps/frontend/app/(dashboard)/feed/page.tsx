@@ -5,6 +5,7 @@ import { getUserProfileAction } from "@/actions/user.actions";
 
 export default async function FeedPage() {
   const profilePromise = getUserProfileAction();
+  const start = performance.now();
   const feedPromise = fetcher("/posts/feed?page=1&limit=20", {
     next: {
       revalidate: 30,
@@ -15,6 +16,10 @@ export default async function FeedPage() {
     profilePromise,
     feedPromise,
   ]);
+
+  console.log(
+    `[FEED PAGE] Time taken to fetch feed: ${performance.now() - start}ms`,
+  );
 
   const user = profileRes.success ? profileRes.data : null;
   let posts: IPost[] =
