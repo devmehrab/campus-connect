@@ -89,6 +89,41 @@
             "date": 1785314904637,
             "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-29-14-success.log",
             "hash": "4d52194745a04c9d52b6f338795a710f03986e8a3e47a9163e4c1e0964e0b9e8"
+        },
+        {
+            "date": 1785411983857,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-30-17-success.log",
+            "hash": "5aa9bbe4bd74838f6b19d90d3deb802a8153fc63e091cb66fe393b6d1603c813"
+        },
+        {
+            "date": 1785414415054,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-30-18-success.log",
+            "hash": "d092421a4feebb82131dec9942969b34c3c4ff2eab0fcf46bdb6ddc930f49c88"
+        },
+        {
+            "date": 1785417354881,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-30-19-success.log",
+            "hash": "2c79f277162068f3fe9e393e9f703ece17632dd1b18a7111d30ab0b5a7cf153f"
+        },
+        {
+            "date": 1785420228576,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-30-20-success.log",
+            "hash": "83e9462f78dc44747eedf08e6ad13922352fd370c0848a401cf4cccf37c528a4"
+        },
+        {
+            "date": 1785441389875,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-31-01-success.log",
+            "hash": "774ed12ad794609fe2b2fd4a1a9c574ab5e3f6c4a72f7185999097c4022f0d8a"
+        },
+        {
+            "date": 1785516351047,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-31-22-success.log",
+            "hash": "e225144c1ad6d4591ab2768b0328ac1b6809a27d371960b11eefcb7a367b60ba"
+        },
+        {
+            "date": 1785519967561,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/successes/usm-2026-07-31-23-success.log",
+            "hash": "734cfcb22aca2e6a27d3480e62400b401925e75bd4ed6d36b88643fcd797b49b"
         }
     ],
     "hashType": "sha256"
