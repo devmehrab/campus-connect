@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
-import { FileText, FlaskConical, Download, Eye } from "lucide-react";
+import { FileText, FlaskConical, Download } from "lucide-react";
 
-// Shadcn UI components (Removed Tabs entirely)
+// Shadcn UI components
 import {
   Card,
   CardContent,
@@ -12,14 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 // The modular components
 import AssignmentForm from "@/components/tools/cover-generator/forms/AssignmentForm";
@@ -41,22 +34,6 @@ const PDFDownloadLink = dynamic(
     ),
   },
 );
-
-// Custom hook fixed for Hydration
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 1024px)");
-    setIsDesktop(mediaQuery.matches);
-
-    const handler = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
-
-  return isDesktop;
-}
 
 // Reusable component for the Preview and Download logic
 function PreviewSection({
@@ -82,13 +59,15 @@ function PreviewSection({
           )}
         </PDFDownloadLink>
       </div>
-      <PDFPreviewWrapper template={template} />
+      {/* Added a minimum height so mobile browsers don't collapse the iframe */}
+      <div className="min-h-[60vh] w-full border rounded-md overflow-hidden bg-white">
+        <PDFPreviewWrapper template={template} />
+      </div>
     </div>
   );
 }
 
 export default function CoverGeneratorPage() {
-  // Simple React state to replace Shadcn Tabs
   const [activeMode, setActiveMode] = useState<"assignment" | "lab-report">(
     "assignment",
   );
@@ -96,20 +75,7 @@ export default function CoverGeneratorPage() {
   const [assignmentData, setAssignmentData] = useState({});
   const [labReportData, setLabReportData] = useState({});
 
-  const isDesktop = useIsDesktop();
-
-  // Show a quick skeleton while determining screen size (prevents mobile layout explosions)
-  if (isDesktop === null) {
-    return (
-      <div className="container mx-auto max-w-7xl p-4 md:p-8 animate-pulse">
-        <div className="h-10 w-64 bg-muted rounded-md mb-4"></div>
-        <div className="h-4 w-96 bg-muted rounded-md mb-8"></div>
-        <div className="h-[600px] w-full bg-muted rounded-xl"></div>
-      </div>
-    );
-  }
-
-  // Determine which template and data to use based on the custom toggle
+  // Determine which template and data to use based on the toggle
   const currentTemplate =
     activeMode === "assignment" ? (
       <AssignmentCover data={assignmentData} />
@@ -146,7 +112,7 @@ export default function CoverGeneratorPage() {
         </p>
       </div>
 
-      {/* Custom Lightweight Toggle (Replaces Shadcn Tabs) */}
+      {/* Lightweight Custom Toggle */}
       <div className="flex w-full max-w-md p-1 bg-muted rounded-lg mb-8">
         <button
           onClick={() => setActiveMode("assignment")}
@@ -172,77 +138,40 @@ export default function CoverGeneratorPage() {
         </button>
       </div>
 
-      {/* Main Layout Grid */}
+      {/* Main Layout Grid - The ultimate fix */}
+      {/* On mobile: 1 column (Form stacks on top of Preview). On desktop: 2 columns side-by-side. */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* LEFT SIDE: The Form */}
-        <div className="flex flex-col gap-6">
-          <Card className="bg-card text-card-foreground border-border">
-            <CardHeader>
-              <CardTitle>
-                {activeMode === "assignment"
-                  ? "Assignment Details"
-                  : "Lab Report Details"}
-              </CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Enter your university details for the cover page.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {activeMode === "assignment" ? (
-                <AssignmentForm
-                  data={assignmentData}
-                  onChange={setAssignmentData}
-                />
-              ) : (
-                <LabReportForm
-                  data={labReportData}
-                  onChange={setLabReportData}
-                />
-              )}
-            </CardContent>
-          </Card>
+        {/* ITEM 1: The Form */}
+        <Card className="bg-card text-card-foreground border-border h-fit">
+          <CardHeader>
+            <CardTitle>
+              {activeMode === "assignment"
+                ? "Assignment Details"
+                : "Lab Report Details"}
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Enter your university details for the cover page.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activeMode === "assignment" ? (
+              <AssignmentForm
+                data={assignmentData}
+                onChange={setAssignmentData}
+              />
+            ) : (
+              <LabReportForm data={labReportData} onChange={setLabReportData} />
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Mobile Only: Button to open Preview Sheet */}
-          {!isDesktop && (
-            <Sheet>
-              <SheetTrigger
-                className={buttonVariants({
-                  size: "lg",
-                  className: "w-full",
-                })}
-              >
-                <Eye className="mr-2 h-5 w-5" />
-                Preview & Download PDF
-              </SheetTrigger>
-              <SheetContent
-                side="bottom"
-                className="h-[90dvh] overflow-y-auto px-4 pb-8 sm:px-6"
-              >
-                <SheetHeader className="mb-4 text-left">
-                  <SheetTitle>
-                    {activeMode === "assignment"
-                      ? "Assignment Preview"
-                      : "Lab Report Preview"}
-                  </SheetTitle>
-                </SheetHeader>
-                <PreviewSection
-                  template={currentTemplate}
-                  fileName={currentFileName}
-                />
-              </SheetContent>
-            </Sheet>
-          )}
-        </div>
-
-        {/* RIGHT SIDE (Desktop Only): Inline Preview Card */}
-        {isDesktop && (
-          <Card className="bg-card text-card-foreground border-border flex flex-col p-6 bg-muted/30 h-fit">
-            <PreviewSection
-              template={currentTemplate}
-              fileName={currentFileName}
-            />
-          </Card>
-        )}
+        {/* ITEM 2: The Preview */}
+        <Card className="bg-card text-card-foreground border-border flex flex-col p-6 bg-muted/30 h-fit">
+          <PreviewSection
+            template={currentTemplate}
+            fileName={currentFileName}
+          />
+        </Card>
       </div>
     </div>
   );

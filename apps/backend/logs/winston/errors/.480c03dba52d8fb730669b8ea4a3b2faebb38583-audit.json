@@ -94,6 +94,11 @@
             "date": 1785519967563,
             "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-07-31-23-error.log",
             "hash": "27091b40c001d815cdaf7f77e2620cd7841615355f925348abe59fed7a80e197"
+        },
+        {
+            "date": 1785567604445,
+            "name": "/home/mehrab/campus-connect/apps/backend/logs/winston/errors/usm-2026-08-01-13-error.log",
+            "hash": "ff47d5afbfd7aee836829d5ae0457aa2830d8cc0f8b47efbde63612e98798b5e"
         }
     ],
     "hashType": "sha256"

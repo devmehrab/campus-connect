@@ -1,50 +1,80 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import { usePDF } from "@react-pdf/renderer";
+import { Loader2 } from "lucide-react";
 
-const DynamicPDFViewer = dynamic(
-  () => import("@react-pdf/renderer").then((mod) => mod.PDFViewer),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-muted/20 text-muted-foreground text-sm">
-        Generating PDF preview...
-      </div>
-    ),
-  },
-);
+// Pulls the PDF worker from unpkg so Next.js doesn't crash on build
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-interface PDFPreviewWrapperProps {
-  template: React.ReactElement<any, string | React.JSXElementConstructor<any>>;
-}
+// Bypassing the strict TypeScript check with 'any' to stop the usePDF hook from crashing the compiler
+export default function PDFPreviewWrapper({ template }: { template: any }) {
+  // Generates the PDF blob url in memory without an iframe
+  const [instance, updateInstance] = usePDF({ document: template });
+  const [containerWidth, setContainerWidth] = useState<number>(0);
 
-export default function PDFPreviewWrapper({
-  template,
-}: PDFPreviewWrapperProps) {
-  // Extra safety net: Ensure we only render the viewer after the component has mounted on the client
-  const [isClient, setIsClient] = useState(false);
-
+  // Measure the container width so the PDF canvas perfectly scales on mobile
   useEffect(() => {
-    setIsClient(true);
+    const updateWidth = () => {
+      const container = document.getElementById("pdf-preview-container");
+      if (container) {
+        setContainerWidth(container.clientWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
   }, []);
 
-  if (!isClient) {
+  // Force generation update when user types in the form
+  useEffect(() => {
+    updateInstance(template);
+  }, [template, updateInstance]);
+
+  if (instance.loading) {
     return (
-      <div className="h-[700px] w-full animate-pulse rounded-md bg-muted/50 border border-border flex items-center justify-center">
-        <span className="text-muted-foreground">Loading preview engine...</span>
+      <div className="flex h-full min-h-[60vh] w-full items-center justify-center text-muted-foreground">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+        Generating Preview...
+      </div>
+    );
+  }
+
+  if (instance.error) {
+    return (
+      <div className="flex h-full min-h-[60vh] w-full items-center justify-center text-destructive">
+        Failed to generate PDF.
       </div>
     );
   }
 
   return (
-    <div className="h-[700px] w-full overflow-hidden rounded-md border border-border shadow-sm bg-white">
-      <DynamicPDFViewer
-        showToolbar={true}
-        style={{ width: "100%", height: "100%", border: "none" }}
-      >
-        {template}
-      </DynamicPDFViewer>
+    <div
+      id="pdf-preview-container"
+      className="flex w-full justify-center overflow-hidden bg-white"
+    >
+      {instance.url && (
+        <Document
+          file={instance.url}
+          loading={
+            <div className="flex p-10 items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          }
+          className="w-full flex justify-center"
+        >
+          <Page
+            pageNumber={1}
+            // Scales the canvas to exactly fit the container width
+            width={containerWidth ? containerWidth : undefined}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+            className="shadow-sm"
+          />
+        </Document>
+      )}
     </div>
   );
 }
