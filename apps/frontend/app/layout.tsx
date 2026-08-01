@@ -13,8 +13,8 @@ const jetBrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bup cse",
-  description: "The University Social Network for cse students",
+  title: "Bup Cse Community",
+  description: "The University Social Network for bup cse students",
   themeColor: "#09090b",
 };
 

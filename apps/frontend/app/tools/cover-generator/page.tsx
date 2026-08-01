@@ -4,7 +4,6 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { FileText, FlaskConical, Download } from "lucide-react";
 
-// Shadcn UI components
 import {
   Card,
   CardContent,
@@ -14,14 +13,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// The modular components
 import AssignmentForm from "@/components/tools/cover-generator/forms/AssignmentForm";
 import LabReportForm from "@/components/tools/cover-generator/forms/LabReportForm";
-import PDFPreviewWrapper from "@/components/tools/cover-generator/PDFPreviewWrapper";
 import AssignmentCover from "@/components/tools/cover-generator/templates/AssignmentCover";
 import LabReportCover from "@/components/tools/cover-generator/templates/LabReportCover";
 
-// Dynamically import PDFDownloadLink
 const PDFDownloadLink = dynamic(
   () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
   {
@@ -35,7 +31,18 @@ const PDFDownloadLink = dynamic(
   },
 );
 
-// Reusable component for the Preview and Download logic
+const PDFPreviewWrapper = dynamic(
+  () => import("@/components/tools/cover-generator/PDFPreviewWrapper"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full min-h-[60vh] w-full items-center justify-center text-muted-foreground">
+        Loading Preview Engine...
+      </div>
+    ),
+  },
+);
+
 function PreviewSection({
   template,
   fileName,
@@ -59,7 +66,6 @@ function PreviewSection({
           )}
         </PDFDownloadLink>
       </div>
-      {/* Added a minimum height so mobile browsers don't collapse the iframe */}
       <div className="min-h-[60vh] w-full border rounded-md overflow-hidden bg-white">
         <PDFPreviewWrapper template={template} />
       </div>
@@ -75,7 +81,6 @@ export default function CoverGeneratorPage() {
   const [assignmentData, setAssignmentData] = useState({});
   const [labReportData, setLabReportData] = useState({});
 
-  // Determine which template and data to use based on the toggle
   const currentTemplate =
     activeMode === "assignment" ? (
       <AssignmentCover data={assignmentData} />
@@ -112,7 +117,6 @@ export default function CoverGeneratorPage() {
         </p>
       </div>
 
-      {/* Lightweight Custom Toggle */}
       <div className="flex w-full max-w-md p-1 bg-muted rounded-lg mb-8">
         <button
           onClick={() => setActiveMode("assignment")}
@@ -138,10 +142,7 @@ export default function CoverGeneratorPage() {
         </button>
       </div>
 
-      {/* Main Layout Grid - The ultimate fix */}
-      {/* On mobile: 1 column (Form stacks on top of Preview). On desktop: 2 columns side-by-side. */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* ITEM 1: The Form */}
         <Card className="bg-card text-card-foreground border-border h-fit">
           <CardHeader>
             <CardTitle>
@@ -165,7 +166,6 @@ export default function CoverGeneratorPage() {
           </CardContent>
         </Card>
 
-        {/* ITEM 2: The Preview */}
         <Card className="bg-card text-card-foreground border-border flex flex-col p-6 bg-muted/30 h-fit">
           <PreviewSection
             template={currentTemplate}
